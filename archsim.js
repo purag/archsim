@@ -12,7 +12,7 @@ function Processor (isa, regCount, memSize) {
   isa = isa(r.getRegByDescriptor, m);
   
   /* Extract all the possible commands from the ISA */
-	var cmds = isa.map(instr => instr.cmd);
+  var cmds = isa.map(instr => instr.cmd);
   
   /* Instantiate the program counter */
   var pc = 0;
@@ -30,7 +30,7 @@ function Processor (isa, regCount, memSize) {
   
   /* Load a program into memory */
   this.load = function (str) {
-  	instrs = str.split("\n");
+    instrs = str.split("\n");
     /* Filter out lines containing just whitespace */
     instrs = instrs.filter(s => !(/^\s*$/.test(s)));
     set();
@@ -40,22 +40,22 @@ function Processor (isa, regCount, memSize) {
   
   /* Set up the processor. This can only happen internally */
   function set () {
-  	loaded = true;
+    loaded = true;
     pc = 0;
   }
   
   /* Reset the processor. This can only happen internally */
   function reset () {
-  	loaded = false;
+    loaded = false;
     instrs = [];
     pc = 0;
   }
   
   /* Execute the code loaded into memory */
   this.exec = function () {
-  	/* If no code is loaded, abort */
-  	if (!loaded)
-    	return this.err(new ProgramNotLoadedError());
+    /* If no code is loaded, abort */
+    if (!loaded)
+      return this.err(new ProgramNotLoadedError());
     
     /* Attempt to run the code, one instruction at a time,
      * catching and reporting any errors */
@@ -63,8 +63,8 @@ function Processor (isa, regCount, memSize) {
       for (var i = 0; i < instrs.length; i++)
         execInstr();
     } catch (e) {
-    	this.onError(e.name + " " + e.message);
-    	return this.err(e);
+      this.onError(e.name + " " + e.message);
+      return this.err(e);
     }
     
     reset();
@@ -76,24 +76,24 @@ function Processor (isa, regCount, memSize) {
   /* Execute a single instruction. This call can only happen internally
    * Var-bound so we can bind the `this` parameter */
   var execInstr = function () {
-  	/* Decode the instruction */
-  	var instr = decode(instrs[pc]);
+    /* Decode the instruction */
+    var instr = decode(instrs[pc]);
     /* Execute the decoded instruction */
     instr.dest.setValue(instr.eval(
-      instr.src1 ? instr.src1.valueOf() : undefined,
-      instr.src2 ? instr.src2.valueOf() : undefined
+      typeof instr.src1 == "number" || instr.src1 ? instr.src1.valueOf() : undefined,
+      typeof instr.src2 == "number" || instr.src2 ? instr.src2.valueOf() : undefined
     ));
-  	pc++;
+    pc++;
     this.onInstructionComplete(instr, r, m);
   }.bind(this);
   
   /* Decodes the instruction passed in. This can only happen internally
    * Var-bound to bind the `this` parameter */
   var decode = function (str) {
-  	/* Extract the actual instruction */
-  	var cmd = str.match(/^([a-z]+)\s+/);
+    /* Extract the actual instruction */
+    var cmd = str.match(/^([a-z]+)\s+/);
     if (cmd == null)
-    	throw new IllegalInstructionError();
+      throw new IllegalInstructionError();
       
     /* Then remove it from the picture */
     str = str.replace(/^([a-z]+)\s+/, "");
@@ -102,26 +102,29 @@ function Processor (isa, regCount, memSize) {
     cmd = cmd[1];
     var i = cmds.indexOf(cmd);
     if (i < 0)
-    	throw new InstructionNotSupportedError(cmd);
+      throw new InstructionNotSupportedError(cmd);
     var instr = Object.assign({}, isa[i]);
     
     /* And split the remaining instruction up into distinct operands */
     var opStr = str.split(",");
 
-		/* Attempt to decode the instruction using one of the specified syntaxes
+    /* Attempt to decode the instruction using one of the specified syntaxes
      * in the ISA */
-		valid = 0;
+    valid = 0;
     for (var j = 0; j < instr.syntax.length; j++) {
-    	var keys = Object.keys(instr.syntax[j]);
-    	if (keys.length !== opStr.length)
-      	continue;
+      var keys = Object.keys(instr.syntax[j]);
+      if (keys.length !== opStr.length)
+        continue;
       
       var err = 0;
       for (var k = 0; k < keys.length; k++) {
         instr[keys[k]] = instr.syntax[j][keys[k]](opStr[k]);
-      	/* If one operand failed under this syntax, the whole rule fails */
-        if (!instr[keys[k]]) {
-        	err = 1;
+        /* If one operand failed under this syntax, the whole rule fails */
+        if (
+          (typeof instr[keys[k]]  == "number" && isNaN(instr[keys[k]])) ||
+          instr[keys[k]] == null || instr[keys[k]] == undefined
+        ) {
+          err = 1;
           break;
         }
       }
@@ -133,20 +136,20 @@ function Processor (isa, regCount, memSize) {
     
     /* If we couldn't decode it, the user hasn't given a valid instruction */
     if (!valid)
-    	throw new IllegalInstructionError();
+      throw new IllegalInstructionError();
       
     delete instr.syntax;
     
     this.onDecodeComplete(instr);
     return instr;
   
-  	/* A custom error for an instruction that couldn't be decoded/executed */
+    /* A custom error for an instruction that couldn't be decoded/executed */
     function IllegalInstructionError () {
       this.name = "Illegal Instruction:";
       this.message = instrs[pc];
     }
   
-  	/* A custom error for an instruction that looked valid, but wasn't supported
+    /* A custom error for an instruction that looked valid, but wasn't supported
      * by the ISA */
     function InstructionNotSupportedError (cmd) {
       this.name = "Instruction Not Supported:";
@@ -155,13 +158,13 @@ function Processor (isa, regCount, memSize) {
   }.bind(this);
   
   this.err = function (e) {
-  	console.error(e.name, e.message);
+    console.error(e.name, e.message);
     reset();
     return 1;
   };
   
   function ProgramNotLoadedError () {
-  	this.name = "Program Not Loaded:"
+    this.name = "Program Not Loaded:"
     this.message = "Nothing to execute."
   }
   
@@ -173,7 +176,7 @@ function Processor (isa, regCount, memSize) {
     for (var i = 0; i < regCount; i++)
       r.push(new Register());
 
-		/* Access a particular register in the file by its descriptor, i.e. r[n] */
+    /* Access a particular register in the file by its descriptor, i.e. r[n] */
     this.getRegByDescriptor = function (str) {
       var m;
       /* Test to see if the input is of the right form */
@@ -185,25 +188,25 @@ function Processor (isa, regCount, memSize) {
       return r[+m[1]];
     };
 
-		/* Access a particular register by its index */
+    /* Access a particular register by its index */
     this.getReg = function (i) {
       if (i < 0 || i >= regCount)
         throw new RegisterFileError("Accessing a nonexistent register: r[" + i + "]");
       return r[i];
     };
 
-		/* Retrieve the entire register file */
+    /* Retrieve the entire register file */
     this.getRegisterFile = function () {
       return r;
     };
 
-		/* A custom error for reporting issues in the register file */
+    /* A custom error for reporting issues in the register file */
     function RegisterFileError (err) {
       this.name = "Register File Error:"
       this.message = err;
     }
 
-		/* A VERY simplistic register implementation.
+    /* A VERY simplistic register implementation.
      * Can write/read just about anything.
      */
     function Register () {
@@ -219,7 +222,7 @@ function Processor (isa, regCount, memSize) {
     };
   };
 
-	/* An onboard memory implementation.
+  /* An onboard memory implementation.
    * Each memory cell can store just about anything.
    * TODO: Make this more similar to RegisterFile, i.e. Memory is an array of MemoryCells,
    *       MemoryCells have setValue and valueOf() functions. Will work better with the
@@ -228,21 +231,21 @@ function Processor (isa, regCount, memSize) {
   function Memory (sz) {
     var mem = new Array(sz);
 
-		/* Write a value to a particular memory cell */
+    /* Write a value to a particular memory cell */
     this.write = function (i, v) {
       if (i < 0 || i >= sz)
         throw MemoryError("Writing to a nonexistent memory location.");
       mem[i] = v;
     };
 
-		/* Read a value from a particular memory cell */
+    /* Read a value from a particular memory cell */
     this.read = function (i) {
       if (i < 0 || i >= sz)
         throw MemoryErr("Reading from a nonexistent memory location.");
       return mem[i];
     };
 
-		/* Custom error for reporting issues in the memory module */
+    /* Custom error for reporting issues in the memory module */
     function MemoryError (err) {
       this.name = "Memory Error:";
       this.message = err;
@@ -253,7 +256,7 @@ function Processor (isa, regCount, memSize) {
 /* User-defined ISA. Must be a function taking as input `Register` and `Memory`.
  * This is how we bind the ISA to the processor's onboard reg/memory instantiation. */
 var isa = function (Register, Memory) {
-	return [
+  return [
     {
       cmd: "mov",
       desc: "Move a number constant into a register",
@@ -315,19 +318,18 @@ var proc = new Processor(isa, 12, 1024);
 
 /* Define the onInstructionComplete listener -- executed after PC is incremented */
 proc.onProgramComplete = function (r, m) {
-console.log("prog complete");
-	for (var i = 0; i < r.getRegisterFile().length; i++) {
-  	document.querySelector("#r" + i).textContent = r.getReg(i).valueOf();
+  for (var i = 0; i < r.getRegisterFile().length; i++) {
+    document.querySelector("#r" + i).textContent = r.getReg(i).valueOf();
   }
 };
 
 /* Define onError listener -- executed when there is an error anywhere in the processor. */
 proc.onError = function (e) {
-	document.querySelector("#err").textContent = e;
+  document.querySelector("#err").textContent = e;
 }
 
 /* Load a user program into the processor and execute it */
 function execute () {
   document.querySelector("#err").textContent = "";
-	proc.load(document.querySelector("#prog").value).exec();
+  proc.load(document.querySelector("#prog").value).exec();
 }
