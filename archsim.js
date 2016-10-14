@@ -8,6 +8,27 @@ function Processor (isa, regCount, memSize) {
   var r = new RegisterFile(regCount);
   var m = new Memory(memSize);
   
+  /* Instantiate the program counter */
+  var pc = new (function () {
+    var value = 0;
+
+    this.inc = function () {
+      return ++value;
+    };
+
+    this.get = function () {
+      return value;
+    };
+
+    this.set = function (v) {
+      value = v;
+    };
+
+    this.reset = function () {
+      value = 0;
+    };
+  })();
+
   /* Instantiate the ISA with the register/memory types */
   isa = isa(r.getRegByDescriptor, m);
   
@@ -41,14 +62,14 @@ function Processor (isa, regCount, memSize) {
   /* Set up the processor. This can only happen internally */
   function set () {
     loaded = true;
-    pc = 0;
+    pc.reset();
   }
   
   /* Reset the processor. This can only happen internally */
   function reset () {
     loaded = false;
     instrs = [];
-    pc = 0;
+    pc.reset();
   }
   
   /* Execute the code loaded into memory */
@@ -77,7 +98,7 @@ function Processor (isa, regCount, memSize) {
    * Var-bound so we can bind the `this` parameter */
   var execInstr = function () {
     /* Decode the instruction */
-    var instr = decode(instrs[pc]);
+    var instr = decode(instrs[pc.get()]);
     /* Execute the decoded instruction */
     instr.dest.setValue(instr.eval(
       typeof instr.src1 == "number" || instr.src1 ? instr.src1.valueOf() : undefined,
@@ -146,7 +167,7 @@ function Processor (isa, regCount, memSize) {
     /* A custom error for an instruction that couldn't be decoded/executed */
     function IllegalInstructionError () {
       this.name = "Illegal Instruction:";
-      this.message = instrs[pc];
+      this.message = instrs[pc.get()];
     }
   
     /* A custom error for an instruction that looked valid, but wasn't supported
