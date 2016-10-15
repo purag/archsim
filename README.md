@@ -22,8 +22,8 @@ Again, you have to return a list of supported instructions. The format for instr
   desc: "[description of instruction]",
   syntax: [
     {
-      src1: Register | Memory | Number
-      src2: Register | Memory | Number
+      src1: Register | Memory | Number,
+      src2: Register | Memory | Number,
       dest: Register | Memory
     },
     ...
@@ -70,7 +70,8 @@ var isa = function (Register, Memory, ProgramCounter) {
 #### Branching
 Since the ProgramCounter is supplied as an argument to the ISA function, you are free to manipulate its value. Here's an example of an instruction format for an unconditional branch:
 
-```{
+```
+{
   cmd: "bra",
   desc: "Unconditional branch by a relative instruction offset",
   syntax: [
@@ -80,7 +81,8 @@ Since the ProgramCounter is supplied as an argument to the ISA function, you are
   ],
   eval: function (src1) {
     ProgramCounter.set(ProgramCounter.get() + src1);
-  }}
+  }
+}
 ```
 
 ### Instantiating the Processor
@@ -95,7 +97,8 @@ To instantiate the processor, you call the function exposed by the `archsim` mod
 - `memCellCount`: The number of memory cells in the memory unit
 - `memCellSize`: How many bits each memory cell stores (8 should be common)
 
-### Writing codeOperands are fetched in the same order they are defined in the syntax, so if you define `src1`, then `src2`, and then `dest`, the instruction can be used like this:
+### Writing code
+Operands are fetched in the same order they are defined in the syntax, so if you define `src1`, then `src2`, and then `dest`, the instruction can be used like this:
 
 ```
 instr   {src1}, {src2}, {dest}
