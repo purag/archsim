@@ -21,11 +21,11 @@ Again, you have to return a list of supported instructions. The format for instr
   cmd: "[name of instruction]",
   desc: "[description of instruction]",
   syntax: [
-    {
-      src1: Register | Memory | Number,
-      src2: Register | Memory | Number,
-      dest: Register | Memory
-    },
+    [
+      {src1: Register | Memory | Number},
+      {src2: Register | Memory | Number},
+      {dest: Register | Memory}
+    ],
     ...
   ],
   eval: function (src1, src2) {
@@ -36,15 +36,15 @@ Again, you have to return a list of supported instructions. The format for instr
 
 The `syntax` field is an array of supported syntax structures for the instruction. You can define multiple syntax structures for the same instruction; the decoder will move forward with whichever one is satisfied first.
 
-The `src1`, `src2`, and `dest` fields should contain the type of the operand supported for this structure. For instance, the following defines a syntax structure for an instruction that can take a register descriptor as its first operand, a number as its second operand, and will store the result of the `eval` function into a memory cell:
+The `src1`, `src2`, and `dest` fields should contain the type of the operand supported for this structure. For instance, the following defines a syntax structure for an instruction that can take a register descriptor as its first operand, a number as its second operand, and will store the result of the `eval` function into a memory cell supplied as the third operand:
 
 ```
 syntax: [
-  {
-    src1: Register,
-    src2: Number,
-    dest: Memory
-  }
+  [
+    {src1: Register},
+    {src2: Number},
+    {dest: Memory}
+  ]
 ]
 ```
 
@@ -61,6 +61,7 @@ var isa = function (Register, Memory, ProgramCounter) {
   var condition = false;
 
   var accum = 0;
+
   return [
     // ...
   ];
@@ -75,9 +76,9 @@ Since the ProgramCounter is supplied as an argument to the ISA function, you are
   cmd: "bra",
   desc: "Unconditional branch by a relative instruction offset",
   syntax: [
-    {
-      src1: Number
-    }
+    [
+      {src1: Number}
+    ]
   ],
   eval: function (src1) {
     ProgramCounter.set(ProgramCounter.get() + src1);
@@ -107,7 +108,7 @@ instr   {src1}, {src2}, {dest}
 #### Register and Memory descriptors
 To access registers, use `r[i]`, where `i` is the number of the register you wish to access. If `i` is out of range according to `regCount`, an error is thrown.
 
-To access memory cells, use `m[i]`, where `m` is the "address" of the memory cell you wish to access. If `i` is out of range according to `memCellCount`, an error is thrown.
+To access memory cells, use `m[i]`, where `i` is the "address" of the memory cell you wish to access. If `i` is out of range according to `memCellCount`, an error is thrown.
 
 ### Executing Code
 To execute a program, just use `load()` followed by `exec()`. These operations can be chained:
@@ -115,6 +116,8 @@ To execute a program, just use `load()` followed by `exec()`. These operations c
 ```
 processor.load(asm).exec();
 ```
+
+Where `asm` is a string containing the assembly language program, with each instruction separate by a newline (blank lines are ignored in execution, but can be included for clarity in the source code).
 
 #### Event Listeners
 You can implement event listeners for the following functions:

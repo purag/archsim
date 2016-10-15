@@ -11,10 +11,10 @@ var isa = function (Register, Memory, ProgramCounter) {
       cmd: "mov",
       desc: "Move a number constant into a register",
       syntax: [
-        {
-          src1: Number,
-          dest: Register
-        }
+        [
+          {src1: Number},
+          {dest: Register}
+        ]
       ],
       eval: function (src1) {
         return src1;
@@ -24,20 +24,25 @@ var isa = function (Register, Memory, ProgramCounter) {
       cmd: "add",
       desc: "Add two numbers into a register",
       syntax: [
-        {
-          src1: Register,
-          src2: Number,
-        },
-        {
-          src1: Register,
-          src2: Number,
-          dest: Register
-        },
-        {
-          src1: Register,
-          src2: Register,
-          dest: Register
-        }
+        [
+          {src1: Register},
+          {src2: Number}
+        ],
+        [
+          {src1: Register},
+          {src2: Number},
+          {dest: Register}
+        ],
+        [
+          {src1: Register},
+          {src2: Register},
+          {dest: Register}
+        ],
+        [
+          {dest: Register},
+          {src1: Number},
+          {src2: Number}
+        ]
       ],
       eval: function (src1, src2) {
         return src1 + src2;
@@ -47,16 +52,16 @@ var isa = function (Register, Memory, ProgramCounter) {
       cmd: "sub",
       desc: "Subtract two numbers into a register",
       syntax: [
-        {
-          src1: Register,
-          src2: Number,
-          dest: Register
-        },
-        {
-          src1: Register,
-          src2: Register,
-          dest: Register
-        }
+        [
+          {src1: Register},
+          {src2: Number},
+          {dest: Register}
+        ],
+        [
+          {src1: Register},
+          {src2: Register},
+          {dest: Register}
+        ]
       ],
       eval: function (src1, src2) {
         return src1 - src2;
@@ -66,10 +71,10 @@ var isa = function (Register, Memory, ProgramCounter) {
       cmd: "st",
       desc: "Store a value from a register into memory",
       syntax: [
-        {
-          src1: Register,
-          dest: Memory
-        }
+        [
+          {src1: Register},
+          {dest: Memory}
+        ]
       ],
       eval: function (src1) {
         return src1;
@@ -79,10 +84,10 @@ var isa = function (Register, Memory, ProgramCounter) {
       cmd: "ld",
       desc: "Load a value from memory into register",
       syntax: [
-        {
-          src1: Memory,
-          dest: Register
-        }
+        [
+          {src1: Memory},
+          {dest: Register}
+        ]
       ],
       eval: function (src1) {
         return src1;
@@ -92,9 +97,9 @@ var isa = function (Register, Memory, ProgramCounter) {
       cmd: "bra",
       desc: "Unconditional branch with relative instruction offset",
       syntax: [
-        {
-          src1: Number
-        }
+        [
+          {src1: Number}
+        ]
       ],
       eval: function (src1) {
         ProgramCounter.set(ProgramCounter.get() + src1);
@@ -104,9 +109,9 @@ var isa = function (Register, Memory, ProgramCounter) {
       cmd: "br",
       desc: "Conditional branch with relative instruction offset",
       syntax: [
-        {
-          src1: Number
-        }
+        [
+          {src1: Number}
+        ]
       ],
       eval: function (src1) {
         if (condition) {
@@ -118,14 +123,14 @@ var isa = function (Register, Memory, ProgramCounter) {
       cmd: "slt",
       desc: "Set the condition bit if src1 < src2",
       syntax: [
-        {
-          src1: Register,
-          src2: Register
-        },
-        {
-          src1: Register,
-          src2: Number
-        }
+        [
+          {src1: Register},
+          {src2: Register}
+        ],
+        [
+          {src1: Register},
+          {src2: Number}
+        ]
       ],
       eval: function (src1, src2) {
         condition = src1 < src2;
@@ -153,4 +158,4 @@ proc.onError = function (e) {
 }
 
 /* load a user program into the processor and execute it */
-proc.load("mov 0, r[0]\nadd r[1], 5\nadd r[0], 1\nslt r[0], 10\nbr -4\nmov 0xFF, r[3]\nst r[3], m[0]").exec();
+proc.load("mov 0, r[0]\nadd r[1], 5\nadd r[0], 1\nslt r[0], 10\nbr -4\nmov 0xFF, r[3]\nst r[3], m[0]\nadd  r[6], 9, 7").exec();

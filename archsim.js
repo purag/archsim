@@ -98,8 +98,8 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
   var execInstr = function () {
     /* Decode the instruction */
     var instr = decode(instrs[pc.get()]);
-    /* Execute the decoded instruction */
     if (!instr.dest) instr.dest = instr.src1;
+    /* Execute the decoded instruction */
     var result = instr.eval(
       typeof instr.src1 == "number" || instr.src1 ? instr.src1.valueOf() : undefined,
       typeof instr.src2 == "number" || instr.src2 ? instr.src2.valueOf() : undefined
@@ -134,13 +134,13 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
      * in the ISA */
     valid = 0;
     for (var j = 0; j < instr.syntax.length; j++) {
-      var keys = Object.keys(instr.syntax[j]);
+      var keys = instr.syntax[j].map(function (op) { return Object.keys(op)[0]; });
       if (keys.length !== opStr.length)
         continue;
       
       var err = 0;
       for (var k = 0; k < keys.length; k++) {
-        var fetchOperand = instr.syntax[j][keys[k]];
+        var fetchOperand = instr.syntax[j][k][keys[k]];
         if (fetchOperand.getByDescriptor)
           fetchOperand = fetchOperand.getByDescriptor;
         try {
