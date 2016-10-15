@@ -80,7 +80,7 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
     /* Attempt to run the code, one instruction at a time,
      * catching and reporting any errors */
     try {
-      for (var i = 0; i < instrs.length; i++)
+      while (pc.get() < instrs.length)
         execInstr();
     } catch (e) {
       this.onError(e.name + " " + e.message);
@@ -100,10 +100,11 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
     var instr = decode(instrs[pc.get()]);
     /* Execute the decoded instruction */
     if (!instr.dest) instr.dest = instr.src1;
-    instr.dest.setValue(instr.eval(
+    var result = instr.eval(
       typeof instr.src1 == "number" || instr.src1 ? instr.src1.valueOf() : undefined,
       typeof instr.src2 == "number" || instr.src2 ? instr.src2.valueOf() : undefined
-    ));
+    );
+    if (result) instr.dest.setValue(result);
     pc.inc();
     this.onInstructionComplete(instr, r, m);
   }.bind(this);
@@ -142,7 +143,12 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
         var fetchOperand = instr.syntax[j][keys[k]];
         if (fetchOperand.getByDescriptor)
           fetchOperand = fetchOperand.getByDescriptor;
-        var operand = fetchOperand(opStr[k]);
+        try {
+          var operand = fetchOperand(opStr[k]);
+        } catch (e) {
+          err = 1;
+          break;
+        }
         /* If one operand failed under this syntax, the whole rule fails */
         if (
           (typeof operand  == "number" && isNaN(operand)) ||
