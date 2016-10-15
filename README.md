@@ -1,6 +1,21 @@
 ## archsim
 A Javascript processor implementation that can simulate any load-store architecture
 
+- [How to Use](#how-to-use)
+  - [Creating your ISA](#creating-your-isa)
+    - [Instruction Format](#instruction-format)
+    - [Internal State](#internal-state)
+    - [Branching](#branching)
+  - [Instantiating the Processor](#instantiating-the-processor)
+  - [Writing code](#writing-code)
+    - [Register and Memory descriptors](#register-and-memory-descriptors)
+  - [Executing Code](#executing-code)
+    - [Event Listeners](#event-listeners)
+  - [Errors](#errors)
+    - [Processor level](#processor-level)
+    - [Register File level](#register-file-level)
+    - [Memory Unit level](#memory-unit-level)
+
 ## How to Use
 To use the processor, you must first create an ISA.
 
