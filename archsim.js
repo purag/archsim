@@ -113,12 +113,12 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
    * Var-bound to bind the `this` parameter */
   var decode = function (str) {
     /* Extract the actual instruction */
-    var cmd = str.match(/^([a-z]+)\s+/);
+    var cmd = str.match(/^([a-z]+)\s*/);
     if (cmd == null)
       throw new IllegalInstructionError();
       
     /* Then remove it from the picture */
-    str = str.replace(/^([a-z]+)\s+/, "");
+    str = str.replace(/^([a-z]+)\s*/, "");
       
     /* Copy the ISA entry for this instruction */
     cmd = cmd[1];
@@ -130,39 +130,42 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
     /* And split the remaining instruction up into distinct operands */
     var opStr = str.split(",");
 
-    /* Attempt to decode the instruction using one of the specified syntaxes
-     * in the ISA */
-    valid = 0;
-    for (var j = 0; j < instr.syntax.length; j++) {
-      var keys = instr.syntax[j].map(function (op) { return Object.keys(op)[0]; });
-      if (keys.length !== opStr.length)
-        continue;
-      
-      var err = 0;
-      for (var k = 0; k < keys.length; k++) {
-        var fetchOperand = instr.syntax[j][k][keys[k]];
-        if (fetchOperand.getByDescriptor)
-          fetchOperand = fetchOperand.getByDescriptor;
-        try {
-          var operand = fetchOperand(opStr[k]);
-        } catch (e) {
-          err = 1;
-          break;
+    var valid = 1;
+    if (instr.syntax.length) {
+      /* Attempt to decode the instruction using one of the specified syntaxes
+       * in the ISA */
+      valid = 0;
+      for (var j = 0; j < instr.syntax.length; j++) {
+        var keys = instr.syntax[j].map(function (op) { return Object.keys(op)[0]; });
+        if (keys.length !== opStr.length)
+          continue;
+        
+        var err = 0;
+        for (var k = 0; k < keys.length; k++) {
+          var fetchOperand = instr.syntax[j][k][keys[k]];
+          if (fetchOperand.getByDescriptor)
+            fetchOperand = fetchOperand.getByDescriptor;
+          try {
+            var operand = fetchOperand(opStr[k]);
+          } catch (e) {
+            err = 1;
+            break;
+          }
+          /* If one operand failed under this syntax, the whole rule fails */
+          if (
+            (typeof operand  == "number" && isNaN(operand)) ||
+            operand == null || operand == undefined
+          ) {
+            err = 1;
+            break;
+          }
+          instr[keys[k]] = operand;
         }
-        /* If one operand failed under this syntax, the whole rule fails */
-        if (
-          (typeof operand  == "number" && isNaN(operand)) ||
-          operand == null || operand == undefined
-        ) {
-          err = 1;
-          break;
-        }
-        instr[keys[k]] = operand;
+        if (err) continue;
+        
+        valid = 1;
+        break;
       }
-      if (err) continue;
-      
-      valid = 1;
-      break;
     }
     
     /* If we couldn't decode it, the user hasn't given a valid instruction */
