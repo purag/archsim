@@ -3,6 +3,9 @@ var Processor = require("./archsim.js");
 /* User-defined ISA. Must be a function taking as input `Register` and `Memory`.
  * This is how we bind the ISA to the processor's onboard reg/memory instantiation. */
 var isa = function (Register, Memory, ProgramCounter) {
+  var condition = false;
+  var overflow = 0;
+
   return [
     {
       cmd: "mov",
@@ -84,6 +87,49 @@ var isa = function (Register, Memory, ProgramCounter) {
       eval: function (src1) {
         return src1;
       }
+    },
+    {
+      cmd: "bra",
+      desc: "Unconditional branch with relative instruction offset",
+      syntax: [
+        {
+          src1: Number
+        }
+      ],
+      eval: function (src1) {
+        ProgramCounter.set(ProgramCounter.get() + src1);
+      }
+    },
+    {
+      cmd: "br",
+      desc: "Conditional branch with relative instruction offset",
+      syntax: [
+        {
+          src1: Number
+        }
+      ],
+      eval: function (src1) {
+        if (condition) {
+          ProgramCounter.set(ProgramCounter.get() + src1);
+        }
+      }
+    },
+    {
+      cmd: "slt",
+      desc: "Set the condition bit if src1 < src2",
+      syntax: [
+        {
+          src1: Register,
+          src2: Register
+        },
+        {
+          src1: Register,
+          src2: Number
+        }
+      ],
+      eval: function (src1, src2) {
+        condition = src1 < src2;
+      }
     }
   ];
 };
@@ -107,4 +153,4 @@ proc.onError = function (e) {
 }
 
 /* load a user program into the processor and execute it */
-proc.load("mov 6, r[0]\nst r[0], m[0]\nld m[0], r[3]\nadd r[3], 8\nst r[3], m[0]").exec();
+proc.load("mov 0, r[0]\nadd r[1], 5\nadd r[0], 1\nslt r[0], 10\nbr -4\nmov 0xFF, r[3]\nst r[3], m[0]").exec();
