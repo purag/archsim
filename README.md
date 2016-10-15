@@ -1,4 +1,4 @@
-# archsim
+## archsim
 A Javascript processor implementation that can simulate any load-store architecture
 
 ## How to Use
@@ -15,7 +15,7 @@ var isa = function (Register, Memory, ProgramCounter) {
 
 Again, you have to return a list of supported instructions. The format for instructions is:
 
-### Instruction Format
+#### Instruction Format
 ```
 {
   cmd: "[name of instruction]",
@@ -116,3 +116,31 @@ To execute a program, just use `load()` followed by `exec()`. These operations c
 ```
 processor.load(asm).exec();
 ```
+
+#### Event Listeners
+You can implement event listeners for the following functions:
+
+- `processor.onProgramLoaded = function (instrs, regs, mem) {};`
+- `processor.onProgramComplete = function (regs, mem) {};`
+- `processor.onInstructionComplete = function (instr, regs, mem) {};`
+- `processor.onDecodeComplete = function (instr) {};`
+- `processor.onError = function (err) {};`
+ 
+Hopefully these are straightforward. `onInstructionComplete` is called after the program counter is incremented. `regs` and `mem` allow access to the contents of the register file and memory unit, respectively.
+ 
+### Errors
+The `onError` handler will be invoked once an error is encountered, and execution of the program halts. The possible errors are:
+
+#### Processor level
+- `Program Not Loaded: Nothing to execute` -- when `exec()` is called before a program has been loaded with `load()`.
+- `Illegal Instruction: {instr}` -- when a program uses an instruction with an unsupported syntax structure, or an instruction that it otherwise can't decode
+- `Unsupported instruction: {instr}` -- when a program uses an instruction that is not supported, i.e. if no `add` instruction is given in the ISA, but a program uses it.
+
+#### Register File level
+- `Register File Error: Invalid register descriptor: {}` -- when a register is expected but the operand is not of the form `r[i]`.
+- `Register File Error: Accessing a nonexistent register: {}` -- when the program attempts to access a register outside of the allocated range, i.e. `r[10]` when the register count is 8..
+
+#### Memory Unit level
+- `Memory Error: Invalid memory cell descriptor: {}` -- see corresponding register file error
+- `Memory Error: Accessing a nonexistent memory cell: {}` -- see corresponding register file error
+- 
