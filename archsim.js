@@ -104,7 +104,7 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
       typeof instr.src1 == "number" || instr.src1 ? instr.src1.valueOf() : undefined,
       typeof instr.src2 == "number" || instr.src2 ? instr.src2.valueOf() : undefined
     );
-    if (result) instr.dest.setValue(result);
+    if (typeof result == "number") instr.dest.setValue(result);
     pc.inc();
     this.onInstructionComplete(instr, r, m);
   }.bind(this);
@@ -270,7 +270,7 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
     /* Write a value to a particular memory cell */
     this.getCell = function (i) {
       if (i < 0 || i >= cellCount)
-        throw MemoryError("Accessing a nonexistent memory location.");
+        throw new MemoryError("Accessing a nonexistent memory cell: m[" + i + "]");
       return mem[i];
     };
 
@@ -281,9 +281,13 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
       if (!/^\s*(m\[[0-9]+\])\s*$/.test(str) || (m = str.match(/([0-9]+)/)) == null)
         throw new MemoryError("Invalid memory cell descriptor: " + str);
       /* If so, check that the inputted register number is within the bounds */
-      if (+m[1] < 0 || +m[1] >= regCount)
+      if (+m[1] < 0 || +m[1] >= cellCount)
         throw new MemoryError("Accessing a nonexistent memory cell: m[" + +m[1] + "]");
       return mem[+m[1]];
+    };
+
+    this.getMemoryUnit = function () {
+      return mem;
     };
 
     /* Custom error for reporting issues in the memory module */
