@@ -80,7 +80,7 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
     /* Attempt to run the code, one instruction at a time,
      * catching and reporting any errors */
     try {
-      while (pc.get() < instrs.length && pc.get >= 0)
+      while (pc.get() < instrs.length && pc.get() >= 0)
         execInstr();
     } catch (e) {
       this.onError(e.name + " " + e.message);
