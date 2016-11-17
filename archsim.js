@@ -57,6 +57,10 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
     this.onProgramLoaded(instrs, r, m);
     return this;
   };
+
+  this.loadFile = function (filename) {
+    /* read assembly from file and call this.load() */
+  };
   
   /* Set up the processor. This can only happen internally */
   function set () {
