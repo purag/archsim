@@ -59,5 +59,13 @@ set     7\n\
 st      r[3]\n\
 hlt");
 
-console.log(proc.assemble());
-proc.exec();
+if (process.argv.length != 3) usage();
+
+if (process.argv[2] == "asm") console.log(proc.assemble());
+else if (process.argv[2] == "run") proc.exec();
+else usage();
+
+function usage () {
+  console.log("Incorrect Usage. Exiting.\n\nUsage:\n  node 141prog2.js asm\t\toutput the machine code translation of the assembly program\n  node 141prog2.js run\t\trun the assembly program")
+  process.exit(1);
+}
