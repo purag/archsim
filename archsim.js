@@ -75,6 +75,33 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
     pc.reset();
   }
   
+  this.assemble = function () {
+    var mach = "";
+    for (var i = 0; i < instrs.length; i++) {
+      var instr = decode(instrs[i]);
+      mach += instr.opcode;
+      if (instr.dest) {
+        var dest = (instr.dest.descriptor & (Math.pow(2, 3) - 1)).toString(2);
+        mach += "000".substr(dest.length) + dest;
+      }
+      if ((typeof instr.src1 == "number" && !isNaN(instr.src1)) || instr.src1) {
+        var src1 = ((instr.src1.descriptor ? instr.src1.descriptor : instr.src1)
+          & (Math.pow(2, 3) - 1)).toString(2);
+        if (instr.cmd == "br" || instr.cmd == "set")
+          mach += "000000".substr(src1.length) + src1;
+        else
+          mach += "000".substr(src1.length) + src1;
+      }
+      if ((typeof instr.src2 == "number" && !isNaN(instr.src2)) || instr.src2) {
+        var src2 = ((instr.src2.descriptor ? instr.src2.descriptor : instr.src2)
+          & (Math.pow(2, 3) - 1)).toString(2);
+        mach += "000".substr(src2.length) + src2;
+      }
+      if (i < instrs.length) mach += "\n";
+    }
+    return mach;
+  };
+
   /* Execute the code loaded into memory */
   this.exec = function () {
     /* If no code is loaded, abort */
@@ -157,7 +184,7 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
           }
           /* If one operand failed under this syntax, the whole rule fails */
           if (
-            (typeof operand  == "number" && isNaN(operand)) ||
+            (typeof operand == "number" && isNaN(operand)) ||
             operand == null || operand == undefined
           ) {
             err = 1;
@@ -223,7 +250,9 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
       /* If so, check that the inputted register number is within the bounds */
       if (+m[1] < 0 || +m[1] >= regCount)
         throw new RegisterFileError("Accessing a nonexistent register: r[" + +m[1] + "]");
-      return r[+m[1]];
+      var reg = r[+m[1]];
+      reg.descriptor = +m[1];
+      return reg;
     };
 
     /* Access a particular register by its index */
