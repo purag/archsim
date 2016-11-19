@@ -86,7 +86,7 @@ function Processor (isa, regCount, regSize, memCellCount, memCellSize) {
       }
       if ((typeof instr.src1 == "number" && !isNaN(instr.src1)) || instr.src1) {
         var src1 = ((instr.src1.descriptor ? instr.src1.descriptor : instr.src1)
-          & (Math.pow(2, 3) - 1)).toString(2);
+          & (Math.pow(2, 6) - 1)).toString(2);
         if (instr.cmd == "br" || instr.cmd == "set")
           mach += "000000".substr(src1.length) + src1;
         else
