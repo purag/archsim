@@ -1,0 +1,27 @@
+{
+  "name": "archsim",
+  "version": "1.0.0",
+  "description": "A JavaScript processor simulator to design and execute user-defined assembly language architectures.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/purag/archsim.git"
+  },
+  "keywords": [
+    "architecture",
+    "processor",
+    "simulator",
+    "assembly",
+    "machine"
+  ],
+  "author": "Purag Moumdjian <me@purag.me>",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/purag/archsim/issues"
+  },
+  "homepage": "https://github.com/purag/archsim#readme"
+}
